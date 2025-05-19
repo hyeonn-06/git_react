@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.webjjang.board.mapper.BoardMapper">
+ 	<select id="getTotalRow" resultType="Long">
+ 		select count(*)
+ 		from board
+ 	</select>
+    <!-- getTime 메서드에 대한 SQL 매핑 -->
+    <select id="list" resultType="com.webjjang.board.vo.BoardVO">
+	    SELECT rnum, no, title, writer, writeDate, hit, replyCnt
+	    from(	
+		    SELECT rownum rnum, no, title, writer, writeDate, hit, replyCnt
+	    	from(
+		        SELECT no, title, writer, writeDate, hit,
+        (select count(*) from board_reply br where br.no = board.no) replyCnt
+		        from board
+		        order by no desc
+		    )
+		) where rnum between ${startRow} and ${endRow}
+    </select>
+    <update id="increase">
+    	update board set hit = hit + 1 where no = #{no}
+    </update>
+    <select id="view" resultType="com.webjjang.board.vo.BoardVO">
+   		SELECT no, title, content, writer, writeDate, hit
+		from board where no = #{no}
+	</select>
+	<insert id="write">
+		insert into board(no, title, content, writer, pw)
+		values(board_seq.nextVal, #{title}, #{content}, #{writer}, #{pw})
+	</insert>
+	<update id="update">
+ 		update board set title = #{title}, content = #{content}, writer = #{writer} where no = #{no} and pw = #{pw} 	
+	</update>
+	<delete id="delete">
+ 		delete from board where no = #{no} and pw = #{pw}
+ 	</delete>
+</mapper>
